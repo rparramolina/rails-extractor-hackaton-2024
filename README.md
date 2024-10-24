@@ -11,6 +11,13 @@ Rails I18n Extractor is a VSCode plugin designed to assist in the internationali
 
 ## Installation
 
+To generate the package, run the following command:
+
+```bash
+npm run compile
+vsce package
+```
+
 To install the Rails I18n Extractor extension in VSCode:
 
 1. Download the extension `.vsix` file.

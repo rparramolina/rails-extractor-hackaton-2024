@@ -20,11 +20,11 @@ export default class I18nInformationProvider implements vscode.WebviewViewProvid
 
 				const document = await vscode.workspace.openTextDocument(position.filePath);
 				const editor = await vscode.window.showTextDocument(document, { preview: false });
-				
+
 				// el 6 es para dejar el mouse en la t de I18n.t
 				const newPosition = new vscode.Position(position.line, position.character + 6);
 				const newSelection = new vscode.Selection(newPosition, newPosition);
-				
+
 				editor.selection = newSelection;
 				await vscode.commands.executeCommand('workbench.action.focusActiveEditorGroup');
 				editor.revealRange(newSelection, vscode.TextEditorRevealType.InCenter);
@@ -36,7 +36,7 @@ export default class I18nInformationProvider implements vscode.WebviewViewProvid
 				const openPath = vscode.Uri.file(position.filePath);
 				const document = await vscode.workspace.openTextDocument(openPath);
 				const editor = await vscode.window.showTextDocument(document, { preview: false });
-			
+
 				// movemos el raton al final de la linea y centramos
 				if (line >= 0) {
 					const linePosition = document.lineAt(line).range.end;
@@ -44,6 +44,17 @@ export default class I18nInformationProvider implements vscode.WebviewViewProvid
 					editor.revealRange(new vscode.Range(linePosition, linePosition), vscode.TextEditorRevealType.InCenter);
 				}
 			}
+
+            if (message.command === 'goToExtraction') {
+                //TODO: Implementar la extracción del string
+                //1.- llamar a la gema que extrae el string y genera los yml
+                //2.- reemplazar el string en el archivo original por la llamada a I18n.t con la llave correspondiente
+            }
+
+            if (message.command === 'goToTranslate') {
+                //TODO: Implementar la traducción
+                //2.- mediante la api de chatgpt generar la traducción en los idiomas correspondientes(PT/EN)
+            }
 		}, undefined, this._context.subscriptions);
 
 		this.updateWebview();
@@ -97,28 +108,39 @@ export default class I18nInformationProvider implements vscode.WebviewViewProvid
 					break;
 				}
 			}
-			
+
 			let value;
 			let goToYmlHTML = "";
+            let extractText = "";
 			if(ymlData) {
 				value = HTML.escape(ymlData.value)
 				const positionYml = JSON.stringify({ filePath: ymlData.filePath, fullKey: fullKey });
 				goToYmlHTML = `
-					<vscode-button appearance="icon" onclick="goToYml('${positionYml.replace(/"/g, '&quot;')}')">
+					<vscode-button appearance="icon" onclick="goToYml('${positionYml.replace(/"/g, '&quot;')}')" title="Go to YML File">
 						<i class="codicon codicon-code"></i>
 					</vscode-button>
 				`;
 			} else {
 				value = '<span style="color: var(--vscode-editorOverviewRuler-warningForeground)">not found</span>';
+                let positionString = JSON.stringify({ line: position.line, character: position.character, filePath: filePath });
+                extractText = `
+					<vscode-button appearance="icon" title="Extract" onclick="goToExtract('${positionString.replace(/"/g, '&quot;')}')">
+						<i class="codicon codicon-combine"></i>
+					</vscode-button>
+				`;
 			}
 			const positionString = JSON.stringify({ line: position.line, character: position.character, filePath: filePath });
 			return `<vscode-data-grid-row>
 				<vscode-data-grid-cell grid-column="1">${key}</vscode-data-grid-cell>
 				<vscode-data-grid-cell grid-column="2">${value}</vscode-data-grid-cell>
 				<vscode-data-grid-cell grid-column="3">
-					${goToYmlHTML}
-					<vscode-button appearance="icon" onclick="goToDefinition('${positionString.replace(/"/g, '&quot;')}')">
+					<vscode-button appearance="icon" onclick="goToDefinition('${positionString.replace(/"/g, '&quot;')}')" title="Go to Definition">
 						<i class="codicon codicon-go-to-file"></i>
+					</vscode-button>
+					${extractText}
+					${goToYmlHTML}
+					<vscode-button appearance="icon" onclick="goToTranslate('${positionString.replace(/"/g, '&quot;')}')" title="Translate to PT/EN">
+						<i class="codicon codicon-archive"></i>
 					</vscode-button>
 				</vscode-data-grid-cell>
 			</vscode-data-grid-row>`;
@@ -163,6 +185,16 @@ export default class I18nInformationProvider implements vscode.WebviewViewProvid
 					const position = JSON.parse(positionYml);
 					vscode.postMessage({ command: 'goToYml', position });
 				}
+
+                function goToExtract(positionString) {
+					const position = JSON.parse(positionString);
+					vscode.postMessage({ command: 'goToExtraction', position });
+				}
+                function goToTranslate(positionString) {
+					const position = JSON.parse(positionString);
+					vscode.postMessage({ command: 'goToTranslate', position });
+				}
+
 			</script>
 		</body>
 		</html>`;
@@ -174,7 +206,7 @@ export default class I18nInformationProvider implements vscode.WebviewViewProvid
 		// ella y la siguiente clave, esa distancia será la separación que define
 		// los espacios, acepto mejores soluciones <.<
         const fileStream = fs.createReadStream(filePath);
-      
+
         const rl = readline.createInterface({
           input: fileStream,
           crlfDelay: Infinity
@@ -185,22 +217,22 @@ export default class I18nInformationProvider implements vscode.WebviewViewProvid
         let lastIndent = 0;
         let lineIndex = 0;
         let line = "";
-      
+
         for await (line of rl) {
           const trimmedLine = line.trim();
           if (trimmedLine === '') {
             lineIndex++;
             continue; // por lineas vacías
           }
-      
+
           const matchResult = line.match(/^(\s*)/);
             const currentLineIndent = matchResult ? matchResult[0].length : 0;
-          
+
           if (currentLineIndent <= lastIndent && currentDepth > 0) {
             currentDepth--;
             lastIndent = currentLineIndent;
           }
-      
+
           if (currentDepth < keyParts.length && trimmedLine.startsWith(keyParts[currentDepth])) {
             lastIndent = currentLineIndent;
             if (currentDepth === keyParts.length - 1) {
@@ -211,7 +243,7 @@ export default class I18nInformationProvider implements vscode.WebviewViewProvid
           }
           lineIndex++;
         }
-      
+
         return -1; // nunca debería pasar que no la encontramos
       }
 }
