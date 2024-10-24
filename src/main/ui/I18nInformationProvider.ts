@@ -47,9 +47,23 @@ export default class I18nInformationProvider implements vscode.WebviewViewProvid
 			}
 
             if (message.command === 'goToExtraction') {
-                //TODO: Implementar la extracción del string
-                //1.- llamar a la gema que extrae el string y genera los yml
-                //2.- reemplazar el string en el archivo original por la llamada a I18n.t con la llave correspondiente
+               const workspaceFolders = vscode.workspace.workspaceFolders;
+				if (workspaceFolders && workspaceFolders.length > 0) {
+					const workspacePath = workspaceFolders[0].uri.fsPath;
+					let system_command = `${workspacePath}/bin/extract-text ${message.position.filePath}:${message.position.line + 1} -sr`;
+
+					const exec = require('child_process').exec;
+					exec(system_command, (err: any, stdout: any, stderr: any) => {
+						if (err) {
+							vscode.window.showErrorMessage(`Error executing command: ${stderr}`);
+							console.log(err);
+							return;
+						}
+						vscode.window.showInformationMessage(`Executed successfully: ${stdout}`);
+					});
+				}else{
+					vscode.window.showErrorMessage("There is no folders in the workspace");
+				}
             }
 
             if (message.command === 'goToTranslate') {
@@ -125,7 +139,7 @@ export default class I18nInformationProvider implements vscode.WebviewViewProvid
 			let goToYmlHTML = "";
             let extractText = "";
 			if(ymlData) {
-				value = HTML.escape(ymlData.value)
+				value = HTML.escape(ymlData.value);
 				const positionYml = JSON.stringify({ filePath: ymlData.filePath, fullKey: fullKey });
 				goToYmlHTML = `
 					<vscode-button appearance="icon" onclick="goToYml('${positionYml.replace(/"/g, '&quot;')}')" title="Go to YML File">
