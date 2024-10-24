@@ -1,7 +1,9 @@
 import axios from "axios";
 import * as dotenv from 'dotenv';
+import * as path from 'path';
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
 const apiKey = process.env.OPENAI_API_KEY;
 
 async function getResponseFromChatGPT(text: string) {
