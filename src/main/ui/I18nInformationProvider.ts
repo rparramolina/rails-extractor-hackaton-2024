@@ -53,8 +53,6 @@ export default class I18nInformationProvider implements vscode.WebviewViewProvid
             }
 
             if (message.command === 'goToTranslate') {
-                //TODO: Implementar la traducción
-                //2.- mediante la api de chatgpt generar la traducción en los idiomas correspondientes(PT/EN)
 
                 const translatedText = await getTranslations("Hola Florencia, como estas? esta es una prueba de traducción");
             }
@@ -82,7 +80,7 @@ export default class I18nInformationProvider implements vscode.WebviewViewProvid
 	private extractI18nKeys(document: vscode.TextDocument): { key: string, position: vscode.Position }[] {
 		const text = document.getText();
 		const i18nRegex = /I18n\.t\(['"`](.*?)['"`]\)/g;
-		let match;
+		var match;
 		const keysWithPosition: { key: string, position: vscode.Position }[] = [];
 
 		while ((match = i18nRegex.exec(text)) !== null) {
@@ -92,6 +90,17 @@ export default class I18nInformationProvider implements vscode.WebviewViewProvid
 				keysWithPosition.push({ key: match[1], position });
 			}
 		}
+
+        const strRegex = /(?<!I18n\.t\()(['"`](.*?)['"`])/g;
+        var match;
+        while ((match = strRegex.exec(text)) !== null) {
+            if (match[1]) {
+                // Guardamos también la posición para hacer un goToDefinition
+                const position = document.positionAt(match.index);
+                keysWithPosition.push({ key: match[1], position });
+            }
+        }
+
 
 		return keysWithPosition;
 	}
