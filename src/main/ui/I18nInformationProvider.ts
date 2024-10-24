@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as readline from 'readline';
 import HTML from '../utils/html';
+import {getTranslations} from "../utils/translation";
 
 export default class I18nInformationProvider implements vscode.WebviewViewProvider {
 	constructor(public yamlManager: any, context: vscode.ExtensionContext) {
@@ -54,6 +55,8 @@ export default class I18nInformationProvider implements vscode.WebviewViewProvid
             if (message.command === 'goToTranslate') {
                 //TODO: Implementar la traducción
                 //2.- mediante la api de chatgpt generar la traducción en los idiomas correspondientes(PT/EN)
+
+                const translatedText = await getTranslations("Hola Florencia, como estas? esta es una prueba de traducción");
             }
 		}, undefined, this._context.subscriptions);
 
