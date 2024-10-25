@@ -1,5 +1,7 @@
 # Rails I18n Extractor
 
+Forked from [vscode-rails-extractor](https://github.com/kb714/vscode-rails-i18n-text-extractor)
+
 Rails I18n Extractor is a VSCode plugin designed to assist in the internationalization of Ruby on Rails projects. It enables developers to manually select hardcoded strings within their project and replace them with I18n translation keys, streamlining the process of preparing an application for localization. Additionally, the plugin facilitates the generation of corresponding entries in locale YAML files.
 
 ## Features
