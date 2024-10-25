@@ -28,18 +28,12 @@ async function getResponseFromChatGPT(text: string) {
     );
     return response.data.choices[0].message.content;
 
-    //try {
-
-    //} catch (error) {
-        //console.error(error);
-    //    return '';
-    //}
 }
-async function getEnglishTranslation(text: string) {
+export async function getEnglishTranslation(text: string) {
     return getResponseFromChatGPT(`Translate to English: ${text}`);
 }
 
-async function getPortugueseTranslation(text: string) {
+export async function getPortugueseTranslation(text: string) {
     return getResponseFromChatGPT(`Translate to Portuguese: ${text}`);
 }
 

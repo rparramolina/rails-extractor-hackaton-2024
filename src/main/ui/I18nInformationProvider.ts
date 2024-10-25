@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as yaml from 'js-yaml';
 import * as readline from 'readline';
 import HTML from '../utils/html';
-import {getTranslations} from "../utils/translation";
+import {getTranslations, getEnglishTranslation, getPortugueseTranslation} from "../utils/translation";
+import { actualizarYamlDinamico } from '../utils/yml';
 
 export default class I18nInformationProvider implements vscode.WebviewViewProvider {
 	constructor(public yamlManager: any, context: vscode.ExtensionContext) {
@@ -60,6 +62,35 @@ export default class I18nInformationProvider implements vscode.WebviewViewProvid
 							return;
 						}
 						vscode.window.showInformationMessage(`Executed successfully: ${stdout}`);
+                        const lines = stdout.split("\n");
+                        let label = lines[2].split(", ")[2].split(".").slice(-1)[0].replace(/['"()]/g, '');
+                        console.log(label);
+                        const folderLine = lines.find((line: string) => line.startsWith('folder:'));
+                        let path = "";
+                        if (folderLine) {
+                            path = folderLine.split(": ")[1];
+
+                            console.log(path);
+                        }
+                        let key = lines[2].split('"')[1];
+                        console.log(key);
+                        let pt_path = path + "pt.yml";
+                        let en_path = path + "en.yml";
+
+                        const pt_file = fs.readFileSync(pt_path, 'utf8');
+                        const en_file = fs.readFileSync(en_path, 'utf8');
+                        //const pt_data = yaml.load(pt_file);
+                        //const en_data = yaml.load(en_file);
+                        //reemplazar el valor de la key label en pt_data y en_data
+                        // Llamar a la función con la ruta del archivo, la clave y el nuevo valor
+
+                        actualizarYamlDinamico(pt_path, label, 'pt');
+                        actualizarYamlDinamico(en_path, label, 'en');
+
+
+
+
+                        console.log(path);
 					});
 				}else{
 					vscode.window.showErrorMessage("There is no folders in the workspace");
