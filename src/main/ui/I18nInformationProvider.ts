@@ -63,7 +63,7 @@ export default class I18nInformationProvider implements vscode.WebviewViewProvid
 						}
 						vscode.window.showInformationMessage(`Executed successfully: ${stdout}`);
                         const lines = stdout.split("\n");
-                        let label = lines[2].split(", ")[2].split(".").slice(-1)[0].replace(/['"()]/g, '');
+                        let label = lines[3].split(".").slice(-1)[0].split(":")[0];
                         console.log(label);
                         const folderLine = lines.find((line: string) => line.startsWith('folder:'));
                         let path = "";
